@@ -6,6 +6,7 @@ name = "pypi"
 [scripts]
 lint = "flake8"
 mypy = "mypy ."
+docs = "sphinx-build -M html docs/source docs/build"
 
 [packages]
 "e1839a8" = {path = ".", editable = true}
@@ -19,6 +20,10 @@ mypy = "mypy ."
 "flake8-tuple" = "*"
 "mypy" = "*"
 "pep8-naming" = "*"
+pytest = "*"
+sphinx = "*"
+sphinx-rtd-theme = "*"
+sphinx-autodoc-typehints = "*"
 
 [requires]
 python_version = "3.5"

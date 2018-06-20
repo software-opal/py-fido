@@ -1,34 +1,5 @@
 from . import _typing as typ
-from .utils import websafe_encode
-
-
-class _AbstractAttribute():
-    def __get__(self, obj, type):
-        this_obj = obj if obj else type
-        abc_class = None
-        attr_name = None
-        # Find ourselves in the MRO
-        for cls in type.__mro__:
-            for name, value in cls.__dict__.items():
-                if value is self:
-                    abc_class = cls
-                    attr_name = name
-        if abc_class is not None and attr_name is not None:
-            raise NotImplementedError(
-                '%r does not have the attribute %r (abstract from class %r)' %
-                (this_obj, name, cls.__name__))
-        else:
-            # we did not find a match, should be rare, but prepare for it
-            raise NotImplementedError(
-                '%r does not set the abstract attribute <unknown>' % this_obj)
-
-
-def abstract_attribute() -> typ.Any:
-    """
-    An attribute that throws an error if it is not provided in a subclass.
-    """
-    # This function keeps MyPy happy
-    return _AbstractAttribute()
+from .utils import abstract_attribute, websafe_encode
 
 
 class DeviceRegistration():
@@ -46,8 +17,7 @@ class DeviceRegistration():
         transports = self.u2f_transports
         if transports is not None:
             out_transports = sorted([
-                t.internal_name
-                for t in transports
+                t.internal_name for t in transports
             ])  # type: typ.Optional[typ.Collection[str]]
         else:
             out_transports = None
