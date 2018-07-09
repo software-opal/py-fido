@@ -11,3 +11,4 @@ venv/
 
 docs/build
 Pipfile.old.lock
+.pytest_cache

@@ -42,9 +42,9 @@ class U2FRegistrationManager(abc.ABC):
         """
         Generate a challenge and return information for the registration step.
 
-        This will secure random challenge, placing it in the session object,
-        and then return a JSON-safe object for use by the client to complete
-        the challenge
+        This will generate a secure random challenge, placing it in the session 
+        object, and then return a JSON-safe object for use by the client to
+        complete the challenge
         """
         challenge = websafe_encode(get_random_challenge())
         session[self.REGISTRATION_SESSION_KEY] = challenge
