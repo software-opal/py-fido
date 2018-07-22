@@ -4,8 +4,9 @@
 from setuptools import find_packages, setup
 
 requirements = [
-    'cryptography~=2.2',
+    'cryptography>=2.3,<3',
 ]
+
 
 packages = find_packages(
     where='./',
@@ -14,19 +15,25 @@ packages = find_packages(
 if not packages:
     raise ValueError('No packages detected.')
 
+
+with open('./README.rst', 'r') as readme_file:
+    readme = readme_file.read()
+
+
 setup(
-    name='fido-u2f',
-    version='0.7.1',
-    description='A framework-agnostic implementation of the FIDO U2F '
-    'server workflow',
-    long_description='',
+    name='py-fido',
+    version='0.1.1',
+    description=(
+        'A framework-agnostic implementation of the FIDO U2F server workflow'
+    ),
+    long_description=readme,
     author='The Operations Team(Catalyst IT Ltd.)',
     author_email='sysadmins@catalyst.net.nz',
-    url='https://gitlab.catalyst.net.nz/sysadmins/hotpotato/',
+    url='https://github.com/leesdolphin/py-fido/',
     packages=packages,
-    include_package_data=False,
+    include_package_data=True,
     install_requires=requirements,
-    zip_safe=True,
+    zip_safe=False,
     package_data={
         'fido_u2f': ['py.typed'],
     },

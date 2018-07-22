@@ -7,7 +7,9 @@ venv
 output
 
 *.egg-info
-venv/
+/venv/
+/dist/
+/build/
 
 docs/build
 Pipfile.old.lock
