@@ -11,9 +11,17 @@ class U2FTransport(Enum):
     NFC = (0x10, 'nfc')
     USB_INTERNAL = (0x08, 'usb-internal')
 
-    def __init__(self, value: int, internal_name: str) -> None:
-        self.value = value
-        self.internal_name = internal_name
+    # def __init__(self, value: int, internal_name: str) -> None:
+    #     self.value = value
+    #     self.internal_name = internal_name
+
+    @property
+    def value(self):
+        return super().value[0]
+
+    @property
+    def internal_name(self):
+        return super().value[1]
 
     @staticmethod
     def from_byte(byte: int) -> typ.Collection['U2FTransport']:

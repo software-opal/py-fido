@@ -11,6 +11,8 @@ from .constants import INVALID_YUBICO_CERT_SHASUMS
 from .enums import RequestType
 from .exceptions import U2FInvalidDataException
 
+BASE64URL = re.compile(br'^[-_a-zA-Z0-9]*=*$')
+
 
 def get_random_challenge() -> bytes:
     return os.urandom(64)
@@ -25,8 +27,7 @@ def standardise_client_data(raw_client_data: str) -> str:
             # Assume JSON string.
             return raw_client_data
     except ValueError:
-        raise U2FInvalidDataException(
-            'Client data was an invalid string')
+        raise U2FInvalidDataException('Client data was an invalid string')
 
 
 def load_client_data(raw_client_data: str) -> typ.Mapping[str, typ.Any]:
@@ -34,8 +35,7 @@ def load_client_data(raw_client_data: str) -> typ.Mapping[str, typ.Any]:
         try:
             return json.loads(standardise_client_data(raw_client_data))
         except ValueError:
-            raise U2FInvalidDataException(
-                'Client data was an invalid string')
+            raise U2FInvalidDataException('Client data was an invalid string')
     else:
         raise U2FInvalidDataException(
             'Client data is an unsupported type{!r}.'.format(
@@ -43,10 +43,10 @@ def load_client_data(raw_client_data: str) -> typ.Mapping[str, typ.Any]:
 
 
 def validate_client_data(
-    raw_client_data: str,
-    request_type: RequestType,
-    app_id: str,
-    expected_challenge: str,
+        raw_client_data: str,
+        request_type: RequestType,
+        app_id: str,
+        expected_challenge: str,
 ) -> str:
     standardised_client_data = standardise_client_data(raw_client_data)
     client_data = load_client_data(standardised_client_data)
@@ -60,7 +60,7 @@ def validate_client_data(
     return standardised_client_data
 
 
-def sha_256(data: typ.Union[str, bytes]) -> bytes:
+def sha_256(data: bytes) -> bytes:
     h = hashes.Hash(hashes.SHA256(), default_backend())
     h.update(data)
     return h.finalize()
@@ -102,10 +102,7 @@ def parse_tlv_encoded_length(data: bytearray) -> int:
         return 2 + length
 
 
-BASE64URL = re.compile(br'^[-_a-zA-Z0-9]*=*$')
-
-
-def websafe_decode(data: typ.Union[str, bytes]) -> bytes:
+def websafe_decode(data: typ.Union[bytes]) -> bytes:
     """Convert the URL Safe Base64 string into the bytes it represents."""
     if isinstance(data, str):
         data = data.encode('ascii')
@@ -115,8 +112,36 @@ def websafe_decode(data: typ.Union[str, bytes]) -> bytes:
     return urlsafe_b64decode(data)
 
 
-def websafe_encode(data: typ.Union[str, bytes]) -> str:
+def websafe_encode(data: typ.Union[bytes]) -> bytes:
     """Convert the given data into it's URL Safe Base64 representation."""
     if isinstance(data, str):
         data = data.encode('ascii')
     return urlsafe_b64encode(data).rstrip(b'=').decode('ascii')
+
+
+class _AbstractAttribute():
+    def __get__(self, obj, type):
+        this_obj = obj if obj else type
+        abc_class = None
+        attr_name = None
+        # Find ourselves in the MRO
+        for cls in type.__mro__:
+            for name, value in cls.__dict__.items():
+                if value is self:
+                    abc_class = cls
+                    attr_name = name
+        if abc_class is not None and attr_name is not None:
+            raise NotImplementedError(
+                '%r does not have the attribute %r (abstract from class %r)' %
+                (this_obj, name, cls.__name__))
+        else:
+            raise NotImplementedError(
+                '%r does not set the abstract attribute <unknown>' % this_obj)
+
+
+def abstract_attribute() -> typ.Any:
+    """
+    An attribute that throws an error if it is not provided in a subclass.
+    """
+    # This function keeps MyPy happy
+    return _AbstractAttribute()
