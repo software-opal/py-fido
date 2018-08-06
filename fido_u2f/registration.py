@@ -26,11 +26,12 @@ class U2FRegistrationManager(abc.ABC):
     @abc.abstractmethod
     def create_device_registration_model(
         self,
+        *,
         version: str,
         app_id: str,
         key_handle: bytes,
         public_key: bytes,
-        transports: U2FTransports,
+        transports: U2FTransports
     ) -> DeviceRegistration:
         ...
 
@@ -42,7 +43,7 @@ class U2FRegistrationManager(abc.ABC):
         """
         Generate a challenge and return information for the registration step.
 
-        This will generate a secure random challenge, placing it in the session 
+        This will generate a secure random challenge, placing it in the session
         object, and then return a JSON-safe object for use by the client to
         complete the challenge
         """
@@ -89,7 +90,7 @@ class U2FRegistrationManager(abc.ABC):
     ) -> 'RegistrationData':
         try:
             registration_data = RegistrationData.from_base64(
-                response_dict.get('responseData', ''))
+                response_dict.get('registrationData', ''))
         except (ValueError, IndexError) as e:
             raise U2FInvalidDataException('Invalid registration data.') from e
         # Client data comes in as base64(usually?), so we standardise it
@@ -101,7 +102,7 @@ class U2FRegistrationManager(abc.ABC):
             self.app_id,
             challenge,
         )
-        challenge_param = sha_256(client_data)
+        challenge_param = sha_256(client_data.encode('utf-8'))
         app_param = sha_256(self.app_id.encode('idna'))
         registration_data.verify(app_param, challenge_param)
         return registration_data

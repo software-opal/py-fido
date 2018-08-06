@@ -50,6 +50,7 @@ def validate_client_data(
 ) -> str:
     standardised_client_data = standardise_client_data(raw_client_data)
     client_data = load_client_data(standardised_client_data)
+    print(client_data)
     if client_data.get('typ', None) != request_type.value:
         raise U2FInvalidDataException('Invalid or missing request type')
     if client_data.get('origin', None) != app_id:

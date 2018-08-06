@@ -42,8 +42,9 @@ class U2FSigningManager(abc.ABC):
     @abc.abstractmethod
     def update_device_registration_counter(
             self,
+            *,
             device: DeviceRegistration,
-            counter: int,
+            counter: int
     ) -> DeviceRegistration:
         ...
 
@@ -82,15 +83,19 @@ class U2FSigningManager(abc.ABC):
             registered_devices: typ.Collection[DeviceRegistration] = (),
     ) -> DeviceRegistration:
         registered_devices = self.filter_devices_by_app_id(registered_devices)
-        key_handle = response_dict.get('keyHandle', '')
+        key_handle = websafe_decode(response_dict.get('keyHandle', ''))
         challenge = session.get(self.SIGNING_SESSION_KEY, '')
         if not challenge:
             raise U2FStateException('Session missing required key.')
         device = self.get_key_by_handle(registered_devices, key_handle)
         signature_data = self.verify_signature_data(response_dict, challenge,
                                                     device)
+        # Only update the counter once we've verified the device.
         counter = signature_data.counter
-        return self.update_device_registration_counter(device, counter)
+        return self.update_device_registration_counter(
+            device=device,
+            counter=counter
+        )
 
     def get_key_by_handle(
             self,
@@ -118,16 +123,16 @@ class U2FSigningManager(abc.ABC):
         #  for the verification step.
         client_data = validate_client_data(
             response_dict.get('clientData', ''),
-            RequestType.REGISTER,
+            RequestType.SIGN,
             self.app_id,
             challenge,
         )
-        challenge_param = sha_256(client_data)
+        challenge_param = sha_256(client_data.encode('utf-8'))
         app_param = sha_256(self.app_id.encode('idna'))
         signature_data.verify(
             app_param,
             challenge_param,
-            websafe_decode(device.public_key),
+            device.public_key,
         )
         return signature_data
 

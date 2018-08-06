@@ -7,6 +7,11 @@ requirements = [
     'cryptography>=2.3,<3',
 ]
 
+flask_sample_requires = [
+    'flask',
+    'Flask-SQLAlchemy',
+]
+
 
 packages = find_packages(
     where='./',
@@ -22,17 +27,17 @@ with open('./README.rst', 'r') as readme_file:
 
 setup(
     name='py-fido',
-    version='0.1.1',
+    version='0.2.0',
     description=(
         'A framework-agnostic implementation of the FIDO U2F server workflow'
     ),
     long_description=readme,
-    author='The Operations Team(Catalyst IT Ltd.)',
-    author_email='sysadmins@catalyst.net.nz',
+    author='Opal Symes',
+    author_email='code@opal.codes',
     url='https://github.com/leesdolphin/py-fido/',
     packages=packages,
     include_package_data=True,
-    install_requires=requirements,
+    install_requires=requirements + flask_sample_requires,
     zip_safe=False,
     package_data={
         'fido_u2f': ['py.typed'],

@@ -10,6 +10,7 @@ docs = "sphinx-build -M html docs/source docs/build"
 
 [packages]
 "e1839a8" = {path = ".", editable = true}
+pyopenssl = "*"
 
 [dev-packages]
 "flake8" = "~=3.5"
