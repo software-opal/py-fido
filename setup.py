@@ -27,7 +27,7 @@ with open('./README.rst', 'r') as readme_file:
 
 setup(
     name='py-fido',
-    version='0.3.0',
+    version='0.4.0-dev',
     description=(
         'A framework-agnostic implementation of the FIDO U2F server workflow'
     ),

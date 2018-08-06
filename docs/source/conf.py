@@ -25,9 +25,9 @@ copyright = '2018, Lee Symes'
 author = 'Lee Symes'
 
 # The short X.Y version
-version = '0.3.0'
+version = '0.4.0-dev'
 # The full version, including alpha/beta/rc tags
-release = '0.3.0'
+release = '0.4.0-dev'
 
 # -- General configuration ---------------------------------------------------
 
