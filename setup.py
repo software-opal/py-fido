@@ -37,7 +37,10 @@ setup(
     url='https://github.com/leesdolphin/py-fido/',
     packages=packages,
     include_package_data=True,
-    install_requires=requirements + flask_sample_requires,
+    install_requires=requirements,
+    extras_require={
+        'sample': flask_sample_requires,
+    },
     zip_safe=False,
     package_data={
         'fido_u2f': ['py.typed'],

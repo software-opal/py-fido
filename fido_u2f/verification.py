@@ -9,7 +9,7 @@ from cryptography.hazmat.primitives.serialization import load_der_public_key
 
 from . import _typing as typ
 from .constants import PUB_KEY_DER_PREFIX
-from .device import DeviceRegistration
+from .device import DeviceRegistration, device_as_client_dict
 from .enums import RequestType
 from .exceptions import U2FInvalidDataException, U2FStateException
 from .utils import get_random_challenge, pop_bytes, sha_256
@@ -67,13 +67,12 @@ class U2FSigningManager(abc.ABC):
             raise ValueError('Cannot issue a signing request with no keys.')
         challenge = websafe_encode(get_random_challenge())
         session[self.SIGNING_SESSION_KEY] = challenge
+        keys = [device_as_client_dict(key) for key in registered_devices]
         return {
-            'appId':
-            self.app_id,
-            'challenge':
-            challenge,
-            'registeredKeys':
-            [key.device_as_client_dict() for key in registered_devices],
+            'appId': self.app_id,
+            'challenge': challenge,
+            'registeredKeys': keys,
+
         }
 
     def process_signing_response(

@@ -8,7 +8,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 
 from . import _typing as typ
 from .constants import U2F_TRANSPORT_EXTENSION_OID, U2F_V2
-from .device import DeviceRegistration
+from .device import DeviceRegistration, device_as_client_dict
 from .enums import RequestType, U2FTransport, U2FTransports
 from .exceptions import U2FInvalidDataException, U2FStateException
 from .utils import fix_invalid_yubico_certs, get_random_challenge, sha_256
@@ -56,7 +56,7 @@ class U2FRegistrationManager(abc.ABC):
                 'challenge': challenge,
             }],
             'registeredKeys': [
-                key.device_as_client_dict()
+                device_as_client_dict(key)
                 for key in registered_devices
             ],
         }
