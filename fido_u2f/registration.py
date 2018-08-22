@@ -8,12 +8,13 @@ from cryptography.hazmat.primitives.asymmetric import ec
 
 from . import _typing as typ
 from .constants import U2F_TRANSPORT_EXTENSION_OID, U2F_V2
-from .device import DeviceRegistration, device_as_client_dict
+from .device import (DeviceRegistration, device_as_client_dict,
+                     filter_devices_by_app_id)
 from .enums import RequestType, U2FTransport, U2FTransports
 from .exceptions import U2FInvalidDataException, U2FStateException
-from .utils import fix_invalid_yubico_certs, get_random_challenge, sha_256
-from .utils import parse_tlv_encoded_length, pop_bytes, validate_client_data
-from .utils import websafe_decode, websafe_encode
+from .utils import (fix_invalid_yubico_certs, get_random_challenge,
+                    parse_tlv_encoded_length, pop_bytes, sha_256,
+                    validate_client_data, websafe_decode, websafe_encode)
 
 
 class U2FRegistrationManager(abc.ABC):
@@ -34,6 +35,12 @@ class U2FRegistrationManager(abc.ABC):
         transports: U2FTransports
     ) -> DeviceRegistration:
         ...
+
+    def filter_devices_by_app_id(
+        self,
+        registered_devices: typ.Collection[DeviceRegistration],
+    ) -> typ.Iterable[DeviceRegistration]:
+        return filter_devices_by_app_id(registered_devices, self.app_id)
 
     def create_registration_challenge(
         self,
@@ -57,7 +64,7 @@ class U2FRegistrationManager(abc.ABC):
             }],
             'registeredKeys': [
                 device_as_client_dict(key)
-                for key in registered_devices
+                for key in self.filter_devices_by_app_id(registered_devices)
             ],
         }
 

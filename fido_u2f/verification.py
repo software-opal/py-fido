@@ -9,11 +9,12 @@ from cryptography.hazmat.primitives.serialization import load_der_public_key
 
 from . import _typing as typ
 from .constants import PUB_KEY_DER_PREFIX
-from .device import DeviceRegistration, device_as_client_dict
+from .device import (DeviceRegistration, device_as_client_dict,
+                     filter_devices_by_app_id)
 from .enums import RequestType
 from .exceptions import U2FInvalidDataException, U2FStateException
-from .utils import get_random_challenge, pop_bytes, sha_256
-from .utils import validate_client_data, websafe_decode, websafe_encode
+from .utils import (get_random_challenge, pop_bytes, sha_256,
+                    validate_client_data, websafe_decode, websafe_encode)
 
 
 class U2FSigningManager(abc.ABC):
@@ -49,13 +50,10 @@ class U2FSigningManager(abc.ABC):
         ...
 
     def filter_devices_by_app_id(
-            self,
-            registered_devices: typ.Collection[DeviceRegistration],
-    ) -> typ.Collection[DeviceRegistration]:
-        return [
-            device for device in registered_devices
-            if device.app_id == self.app_id
-        ]
+        self,
+        registered_devices: typ.Collection[DeviceRegistration],
+    ) -> typ.Iterable[DeviceRegistration]:
+        return filter_devices_by_app_id(registered_devices, self.app_id)
 
     def create_signing_challenge(
             self,
@@ -83,7 +81,7 @@ class U2FSigningManager(abc.ABC):
     ) -> DeviceRegistration:
         registered_devices = self.filter_devices_by_app_id(registered_devices)
         key_handle = websafe_decode(response_dict.get('keyHandle', ''))
-        challenge = session.get(self.SIGNING_SESSION_KEY, '')
+        challenge = session.pop(self.SIGNING_SESSION_KEY, '')
         if not challenge:
             raise U2FStateException('Session missing required key.')
         device = self.get_key_by_handle(registered_devices, key_handle)

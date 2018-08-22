@@ -1,10 +1,10 @@
 import json
 import pathlib
 
-from flask import Flask, request, session, redirect
+from fido_u2f import registration, verification
+from flask import Flask, redirect, request, session
 
-from .tables import db, User, Device
-from .. import registration, verification
+from .tables import Device, User, db
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/data.db'
@@ -13,6 +13,7 @@ app.config['SECRET_KEY'] = 'WebAuthN would be nice one day.'
 app.config['DEBUG'] = True
 
 db.init_app(app)
+
 
 @app.before_first_request
 def _():
@@ -49,7 +50,8 @@ def hello():
         dat += '<tr><td>' + user.name + '</td><td><table>\n'
         dat += '<tr><th>Index</th><th>Key Handle</th><th>Counter</th></tr>\n'
         for idx, key in enumerate(user.devices):
-            dat += '<tr><td>{0}</td><td>{1.key_handle}</td><td>{1.counter}</td></tr>\n'.format(idx, key)
+            dat += '<tr><td>{0}</td><td>{1.key_handle}</td><td>{1.counter}</td></tr>\n'.format(
+                idx, key)
         dat += '</table></td></tr>'
     dat += '</table>'
 
@@ -97,11 +99,12 @@ def do_register_start():
     return (
         '<pre>' + js + '</pre><script>' + js + '</script>' +
         '<span id="u2f_status">Loading</span><br /><a href="/">Back</a>' +
-        '<form id="u2f_data" method="POST" action="/register2">'+
-        '<input name="data" id="data" />'+
+        '<form id="u2f_data" method="POST" action="/register2">' +
+        '<input name="data" id="data" />' +
         '</form>'
         '<script src="register.js"></script>'
     )
+
 
 @app.route("/register2", methods=['POST'])
 def do_register_verify():
@@ -121,6 +124,7 @@ def do_register_verify():
 @app.route("/login.js", methods=['GET'])
 def get_login_js():
     return (pathlib.Path(__file__).parent / 'login.js').open('r').read()
+
 
 @app.route("/login", methods=['POST'])
 def do_login_start():
@@ -146,8 +150,8 @@ def do_login_start():
     return (
         '<pre>' + js + '</pre><script>' + js + '</script>' +
         '<span id="u2f_status">Loading</span><br /><a href="/">Back</a>' +
-        '<form id="u2f_data" method="POST" action="/login2">'+
-        '<input name="data" id="data" />'+
+        '<form id="u2f_data" method="POST" action="/login2">' +
+        '<input name="data" id="data" />' +
         '</form>'
         '<script src="login.js"></script>'
     )

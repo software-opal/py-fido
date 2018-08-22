@@ -29,3 +29,13 @@ def device_as_client_dict(device: DeviceRegistration) -> typ.Dict[str, typ.Any]:
         'keyHandle': websafe_encode(device.key_handle),
         'transports': out_transports,
     }
+
+
+def filter_devices_by_app_id(
+    registered_devices: typ.Collection[DeviceRegistration],
+    app_id: str,
+) -> typ.Iterable[DeviceRegistration]:
+    return (
+        device for device in registered_devices
+        if device.app_id == app_id
+    )
