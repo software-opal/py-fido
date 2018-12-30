@@ -7,10 +7,10 @@ from flask import Flask, redirect, request, session
 from .tables import Device, User, db
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/data.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = 'WebAuthN would be nice one day.'
-app.config['DEBUG'] = True
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////tmp/data.db"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SECRET_KEY"] = "WebAuthN would be nice one day."
+app.config["DEBUG"] = True
 
 db.init_app(app)
 
@@ -21,9 +21,8 @@ def _():
 
 
 class U2FManager(registration.U2FRegistrationManager, verification.U2FSigningManager):
-
     def __init__(self):
-        self.app_id = 'https://localhost:5000'
+        self.app_id = "https://localhost:5000"
 
     def create_device_registration_model(self, *, transports, **kwargs):
         device = Device()
@@ -44,22 +43,25 @@ u2f_manager = U2FManager()
 
 @app.route("/")
 def hello():
-    dat = '<table>'
-    dat += '<tr><th>Username</th><th>Registered keys</th></tr>'
+    dat = "<table>"
+    dat += "<tr><th>Username</th><th>Registered keys</th></tr>"
     for user in User.query.all():
-        dat += '<tr><td>' + user.name + '</td><td><table>\n'
-        dat += '<tr><th>Index</th><th>Key Handle</th><th>Counter</th></tr>\n'
+        dat += "<tr><td>" + user.name + "</td><td><table>\n"
+        dat += "<tr><th>Index</th><th>Key Handle</th><th>Counter</th></tr>\n"
         for idx, key in enumerate(user.devices):
-            dat += '<tr><td>{0}</td><td>{1.key_handle}</td><td>{1.counter}</td></tr>\n'.format(
-                idx, key)
-        dat += '</table></td></tr>'
-    dat += '</table>'
+            dat += "<tr><td>{0}</td><td>{1.key_handle}</td><td>{1.counter}</td></tr>\n".format(
+                idx, key
+            )
+        dat += "</table></td></tr>"
+    dat += "</table>"
 
-    pre = ''
-    if request.args.get('login', None) == 'success':
-        pre = '<h1>You logged in successfully!!!!!!!!!!!!!!!</h1>'
+    pre = ""
+    if request.args.get("login", None) == "success":
+        pre = "<h1>You logged in successfully!!!!!!!!!!!!!!!</h1>"
 
-    return pre + """
+    return (
+        pre
+        + """
     <form method='POST' action='/register' >
     <input type='text' name='name' value='admin' />
     <input type='submit' value='Register new Device' />
@@ -68,18 +70,20 @@ def hello():
     <input type='text' name='name' value='admin' />
     <input type='submit' value='Verify registered device' />
     </form>
-    """ + dat
+    """
+        + dat
+    )
 
 
-@app.route("/register.js", methods=['GET'])
+@app.route("/register.js", methods=["GET"])
 def get_register_js():
-    return (pathlib.Path(__file__).parent / 'register.js').open('r').read()
+    return (pathlib.Path(__file__).parent / "register.js").open("r").read()
 
 
-@app.route("/register", methods=['POST'])
+@app.route("/register", methods=["POST"])
 def do_register_start():
-    user_name = request.form['name']
-    session['user_name'] = user_name
+    user_name = request.form["name"]
+    session["user_name"] = user_name
     user = User.query.filter_by(name=user_name).first()
     if not user:
         user = User(name=user_name)
@@ -92,43 +96,45 @@ def do_register_start():
     const registerRequests = {registerRequests};
     const registeredKeys = {registeredKeys};
     """.format(
-        appId=json.dumps(data['appId']),
-        registerRequests=json.dumps(data['registerRequests']),
-        registeredKeys=json.dumps(data['registeredKeys'])
+        appId=json.dumps(data["appId"]),
+        registerRequests=json.dumps(data["registerRequests"]),
+        registeredKeys=json.dumps(data["registeredKeys"]),
     )
     return (
-        '<pre>' + js + '</pre><script>' + js + '</script>' +
-        '<span id="u2f_status">Loading</span><br /><a href="/">Back</a>' +
-        '<form id="u2f_data" method="POST" action="/register2">' +
-        '<input name="data" id="data" />' +
-        '</form>'
+        "<pre>"
+        + js
+        + "</pre><script>"
+        + js
+        + "</script>"
+        + '<span id="u2f_status">Loading</span><br /><a href="/">Back</a>'
+        + '<form id="u2f_data" method="POST" action="/register2">'
+        + '<input name="data" id="data" />'
+        + "</form>"
         '<script src="register.js"></script>'
     )
 
 
-@app.route("/register2", methods=['POST'])
+@app.route("/register2", methods=["POST"])
 def do_register_verify():
-    user_name = session['user_name']
+    user_name = session["user_name"]
     user = User.query.filter_by(name=user_name).first()
     if not user:
         return 'No user by that name; <a href="/">Back</a>'
-    data = request.json or json.loads(request.form['data'])
-    device = u2f_manager.process_registration_response(
-        session, data
-    )
+    data = request.json or json.loads(request.form["data"])
+    device = u2f_manager.process_registration_response(session, data)
     device.user = user
     db.session.commit()
-    return redirect('/')
+    return redirect("/")
 
 
-@app.route("/login.js", methods=['GET'])
+@app.route("/login.js", methods=["GET"])
 def get_login_js():
-    return (pathlib.Path(__file__).parent / 'login.js').open('r').read()
+    return (pathlib.Path(__file__).parent / "login.js").open("r").read()
 
 
-@app.route("/login", methods=['POST'])
+@app.route("/login", methods=["POST"])
 def do_login_start():
-    user_name = request.form['name']
+    user_name = request.form["name"]
     session.user_name = user_name
     user = User.query.filter_by(name=user_name).first()
     if not user:
@@ -143,29 +149,31 @@ def do_login_start():
     const challenge = {challenge};
     const registeredKeys = {registeredKeys};
     """.format(
-        appId=json.dumps(data['appId']),
-        challenge=json.dumps(data['challenge']),
-        registeredKeys=json.dumps(data['registeredKeys'])
+        appId=json.dumps(data["appId"]),
+        challenge=json.dumps(data["challenge"]),
+        registeredKeys=json.dumps(data["registeredKeys"]),
     )
     return (
-        '<pre>' + js + '</pre><script>' + js + '</script>' +
-        '<span id="u2f_status">Loading</span><br /><a href="/">Back</a>' +
-        '<form id="u2f_data" method="POST" action="/login2">' +
-        '<input name="data" id="data" />' +
-        '</form>'
+        "<pre>"
+        + js
+        + "</pre><script>"
+        + js
+        + "</script>"
+        + '<span id="u2f_status">Loading</span><br /><a href="/">Back</a>'
+        + '<form id="u2f_data" method="POST" action="/login2">'
+        + '<input name="data" id="data" />'
+        + "</form>"
         '<script src="login.js"></script>'
     )
 
 
-@app.route("/login2", methods=['POST'])
+@app.route("/login2", methods=["POST"])
 def do_login_verify():
-    user_name = session['user_name']
+    user_name = session["user_name"]
     user = User.query.filter_by(name=user_name).first()
     if not user:
         return 'No user by that name; <a href="/">Back</a>'
-    data = request.json or json.loads(request.form['data'])
-    device = u2f_manager.process_signing_response(
-        session, data, user.devices
-    )
+    data = request.json or json.loads(request.form["data"])
+    device = u2f_manager.process_signing_response(session, data, user.devices)
     db.session.commit()
-    return redirect('/?login=success')
+    return redirect("/?login=success")

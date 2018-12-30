@@ -7,14 +7,18 @@ from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives.serialization import load_der_public_key
 
-from . import _typing as typ
 from .constants import PUB_KEY_DER_PREFIX
-from .device import (DeviceRegistration, device_as_client_dict,
-                     filter_devices_by_app_id)
+from .device import DeviceRegistration, device_as_client_dict, filter_devices_by_app_id
 from .enums import RequestType
 from .exceptions import U2FInvalidDataException, U2FStateException
-from .utils import (get_random_challenge, pop_bytes, sha_256,
-                    validate_client_data, websafe_decode, websafe_encode)
+from .utils import (
+    get_random_challenge,
+    pop_bytes,
+    sha_256,
+    validate_client_data,
+    websafe_decode,
+    websafe_encode,
+)
 
 
 class U2FSigningManager(abc.ABC):
@@ -30,7 +34,7 @@ class U2FSigningManager(abc.ABC):
     should be used to provide the U2F verification/signing flow for a user.
     """
 
-    SIGNING_SESSION_KEY = 'u2f_signing_challenge'
+    SIGNING_SESSION_KEY = "u2f_signing_challenge"
 
     def __init__(self, app_id: str) -> None:
         """
@@ -42,122 +46,102 @@ class U2FSigningManager(abc.ABC):
 
     @abc.abstractmethod
     def update_device_registration_counter(
-            self,
-            *,
-            device: DeviceRegistration,
-            counter: int
+        self, *, device: DeviceRegistration, counter: int
     ) -> DeviceRegistration:
         ...
 
     def filter_devices_by_app_id(
-        self,
-        registered_devices: typ.Collection[DeviceRegistration],
+        self, registered_devices: typ.Collection[DeviceRegistration]
     ) -> typ.Iterable[DeviceRegistration]:
         return filter_devices_by_app_id(registered_devices, self.app_id)
 
     def create_signing_challenge(
-            self,
-            session: typ.MutableMapping[str, typ.Any],
-            registered_devices: typ.Collection[DeviceRegistration],
+        self,
+        session: typ.MutableMapping[str, typ.Any],
+        registered_devices: typ.Collection[DeviceRegistration],
     ) -> typ.Mapping[str, typ.Any]:
         registered_devices = self.filter_devices_by_app_id(registered_devices)
         if not registered_devices:
-            raise ValueError('Cannot issue a signing request with no keys.')
+            raise ValueError("Cannot issue a signing request with no keys.")
         challenge = websafe_encode(get_random_challenge())
         session[self.SIGNING_SESSION_KEY] = challenge
         keys = [device_as_client_dict(key) for key in registered_devices]
-        return {
-            'appId': self.app_id,
-            'challenge': challenge,
-            'registeredKeys': keys,
-
-        }
+        return {"appId": self.app_id, "challenge": challenge, "registeredKeys": keys}
 
     def process_signing_response(
-            self,
-            session: typ.MutableMapping[str, typ.Any],
-            response_dict: typ.Mapping[str, str],
-            registered_devices: typ.Collection[DeviceRegistration] = (),
+        self,
+        session: typ.MutableMapping[str, typ.Any],
+        response_dict: typ.Mapping[str, str],
+        registered_devices: typ.Collection[DeviceRegistration] = (),
     ) -> DeviceRegistration:
         registered_devices = self.filter_devices_by_app_id(registered_devices)
-        key_handle = websafe_decode(response_dict.get('keyHandle', ''))
-        challenge = session.pop(self.SIGNING_SESSION_KEY, '')
+        key_handle = websafe_decode(response_dict.get("keyHandle", ""))
+        challenge = session.pop(self.SIGNING_SESSION_KEY, "")
         if not challenge:
-            raise U2FStateException('Session missing required key.')
+            raise U2FStateException("Session missing required key.")
         device = self.get_key_by_handle(registered_devices, key_handle)
-        signature_data = self.verify_signature_data(response_dict, challenge,
-                                                    device)
+        signature_data = self.verify_signature_data(response_dict, challenge, device)
         # Only update the counter once we've verified the device.
         counter = signature_data.counter
-        return self.update_device_registration_counter(
-            device=device,
-            counter=counter
-        )
+        return self.update_device_registration_counter(device=device, counter=counter)
 
     def get_key_by_handle(
-            self,
-            registered_keys: typ.Collection[DeviceRegistration],
-            key_handle: str,
+        self, registered_keys: typ.Collection[DeviceRegistration], key_handle: str
     ) -> DeviceRegistration:
         for key in registered_keys:
             if key.key_handle == key_handle:
                 return key
-        raise U2FInvalidDataException('Given key not found')
+        raise U2FInvalidDataException("Given key not found")
 
     def verify_signature_data(
-            self,
-            response_dict: typ.Mapping[str, str],
-            challenge: str,
-            device: DeviceRegistration,
-    ) -> 'SignatureData':
+        self,
+        response_dict: typ.Mapping[str, str],
+        challenge: str,
+        device: DeviceRegistration,
+    ) -> "SignatureData":
         try:
             signature_data = SignatureData.from_base64(
-                response_dict.get('signatureData', ''))
+                response_dict.get("signatureData", "")
+            )
         except (ValueError, IndexError) as e:
-            raise U2FInvalidDataException('Invalid signing data.') from e
+            raise U2FInvalidDataException("Invalid signing data.") from e
         # Client data comes in as base64(usually?), so we standardise it
         #  into a decoded *string*. We then take the hash of that string
         #  for the verification step.
         client_data = validate_client_data(
-            response_dict.get('clientData', ''),
+            response_dict.get("clientData", ""),
             RequestType.SIGN,
             self.app_id,
             challenge,
         )
-        challenge_param = sha_256(client_data.encode('utf-8'))
-        app_param = sha_256(self.app_id.encode('idna'))
-        signature_data.verify(
-            app_param,
-            challenge_param,
-            device.public_key,
-        )
+        challenge_param = sha_256(client_data.encode("utf-8"))
+        app_param = sha_256(self.app_id.encode("idna"))
+        signature_data.verify(app_param, challenge_param, device.public_key)
         return signature_data
 
 
-class SignatureData():
+class SignatureData:
     @classmethod
-    def from_base64(
-            cls,
-            base64_data: typ.Union[str, bytes],
-    ) -> 'SignatureData':
+    def from_base64(cls, base64_data: typ.Union[str, bytes]) -> "SignatureData":
         return cls(websafe_decode(base64_data))  # type: ignore
 
     def __init__(self, data: bytes) -> None:
         # https://fidoalliance.org/specs/fido-u2f-v1.2-ps-20170411/fido-u2f-raw-message-formats-v1.2-ps-20170411.pdf
         buf = bytearray(data)
         self.user_presence = buf.pop(0)
-        self.counter = struct.unpack('>I', pop_bytes(buf, 4))[0]
+        self.counter = struct.unpack(">I", pop_bytes(buf, 4))[0]
         self.signature = bytes(buf)
 
     def verify(self, app_param: bytes, chal_param: bytes, der_pubkey: bytes):
-        pubkey = load_der_public_key(PUB_KEY_DER_PREFIX + der_pubkey,
-                                     default_backend())
+        pubkey = load_der_public_key(PUB_KEY_DER_PREFIX + der_pubkey, default_backend())
         verifier = pubkey.verifier(self.signature, ec.ECDSA(hashes.SHA256()))
         verifier.update(
-            app_param + bytes([self.user_presence]) + struct.pack(
-                '>I', self.counter) + chal_param, )
+            app_param
+            + bytes([self.user_presence])
+            + struct.pack(">I", self.counter)
+            + chal_param
+        )
         try:
             verifier.verify()
         except InvalidSignature as e:
-            raise U2FInvalidDataException(
-                'Attestation signature is invalid') from e
+            raise U2FInvalidDataException("Attestation signature is invalid") from e

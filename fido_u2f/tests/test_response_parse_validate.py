@@ -1,5 +1,3 @@
-
-
 ATTESTION_DATA = """
 {
     "rawId": "imCIoe8U_N9M1rTGeCqJ96TAu5uqSPa7YUzdh7qq-AdJlnBl8NwCpu2-sNj9UIVH5rAjX_RXlSGTGWKexKIZXA",

@@ -1,8 +1,7 @@
 from . import _typing as typ
 from .enums import U2FTransport
 
-
-class DeviceRegistration():
+class DeviceRegistration:
 
     version: str = ...
     app_id: str = ...
@@ -12,6 +11,4 @@ class DeviceRegistration():
 
     # U2FTransports
     u2f_transports: U2FTransport = ...
-
-    def device_as_client_dict(self) -> typ.Dict[str, typ.Any]:
-        ...
+    def device_as_client_dict(self) -> typ.Dict[str, typ.Any]: ...

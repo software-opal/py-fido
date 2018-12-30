@@ -2,32 +2,31 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, ForeignKey, Integer, LargeBinary, String
 from sqlalchemy.orm import relationship
 
-from ..enums import U2FTransport
 from ..device import DeviceRegistration
-
+from ..enums import U2FTransport
 
 db = SQLAlchemy()
 
 
 class User(db.Model):
-    __tablename__ = 'User'
+    __tablename__ = "User"
 
     id = Column(Integer, primary_key=True)
     name = Column(String)
-    devices = relationship('Device', back_populates='user')
+    devices = relationship("Device", back_populates="user")
 
     def __init__(self, name=None):
         self.name = name
 
     def __repr__(self):
-       return "<User(%s, name='%s')>" % (self.id, self.name)
+        return "<User(%s, name='%s')>" % (self.id, self.name)
 
 
 class Device(db.Model, DeviceRegistration):
-    __tablename__ = 'Device'
+    __tablename__ = "Device"
 
     id = Column(Integer, primary_key=True)
-    user_id = Column(Integer, ForeignKey('User.id'))
+    user_id = Column(Integer, ForeignKey("User.id"))
     user = relationship("User", back_populates="devices")
 
     """The U2F protocol version to use."""
@@ -50,8 +49,5 @@ class Device(db.Model, DeviceRegistration):
         return U2FTransport._from_internal_int(self.transports)
 
     @u2f_transports.setter
-    def u2f_transports(
-        self,
-        transports,
-    ):
+    def u2f_transports(self, transports):
         self.transports = U2FTransport._to_internal_int(transports)
