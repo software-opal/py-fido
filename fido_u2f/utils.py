@@ -10,6 +10,8 @@ from .constants import INVALID_YUBICO_CERT_SHASUMS
 from .enums import RequestType
 from .exceptions import U2FInvalidDataException
 
+from . import _typing as typ  # isort:skip
+
 BASE64URL = re.compile(br"^[-_a-zA-Z0-9]*=*$")
 
 

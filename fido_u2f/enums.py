@@ -1,5 +1,7 @@
 from enum import Enum, unique
 
+from . import _typing as typ  # isort:skip
+
 
 @unique
 class U2FTransport(Enum):
