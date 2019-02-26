@@ -75,8 +75,9 @@ def pop_bytes(data: bytearray, l: int) -> bytes:
 
 
 def fix_invalid_yubico_certs(der: bytes):
-    # Some early certs have UNUSED BITS incorrectly set.
-    # Fix only if they are one of the known bad
+    """
+    Some early certs have UNUSED BITS incorrectly set. Fix only if they are one of the known bad
+    """
     if sha_256(der) in INVALID_YUBICO_CERT_SHASUMS:
         der = der[:-257] + b"\0" + der[-256:]
     return der
@@ -104,7 +105,7 @@ def parse_tlv_encoded_length(data: bytearray) -> int:
         return 2 + length
 
 
-def websafe_decode(data: typ.Union[bytes]) -> bytes:
+def websafe_decode(data: typ.Union[bytes, str]) -> bytes:
     """Convert the URL Safe Base64 string into the bytes it represents."""
     if isinstance(data, str):
         data = data.encode("ascii")
@@ -114,7 +115,7 @@ def websafe_decode(data: typ.Union[bytes]) -> bytes:
     return urlsafe_b64decode(data)
 
 
-def websafe_encode(data: typ.Union[bytes]) -> bytes:
+def websafe_encode(data: typ.Union[bytes, str]) -> str:
     """Convert the given data into it's URL Safe Base64 representation."""
     if isinstance(data, str):
         data = data.encode("ascii")

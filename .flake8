@@ -1,0 +1,30 @@
+[flake8]
+accept-encodings = utf-8
+exclude =
+    # No need to traverse our git directory
+    .git,
+    # There"s no value in checking cache directories
+    __pycache__,
+    # Virtual environments shouldn"t be checked either.
+    venv,
+
+# Single line strings must be quoted with a double-quote(e.g. "my string")
+inline-quotes = double
+# Multi-line strings must be quoted with 3 double-quotes(e.g. """my string""")
+multiline-quotes = double
+
+max-line-length = 80
+
+min-version = 3.5
+ignore =
+    # Forbid all futures.
+    FI10, FI11, FI12, FI13, FI14 FI15, FI16, FI17,
+    # We are exclusively Python3 so do not need a magic coding comment.
+    C101,
+    # Binary operators must be placed at the start of lines
+    W503,
+    # Be less strict with the line length.
+    E501,
+
+import-order-style = appnexus
+application-import-names =

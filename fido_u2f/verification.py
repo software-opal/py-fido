@@ -20,6 +20,8 @@ from .utils import (
     websafe_encode,
 )
 
+from . import _typing as typ  # isort:skip
+
 
 class U2FSigningManager(abc.ABC):
     """
@@ -51,14 +53,14 @@ class U2FSigningManager(abc.ABC):
         ...
 
     def filter_devices_by_app_id(
-        self, registered_devices: typ.Collection[DeviceRegistration]
-    ) -> typ.Iterable[DeviceRegistration]:
+        self, registered_devices: typ.Iterable[DeviceRegistration]
+    ) -> typ.Iterator[DeviceRegistration]:
         return filter_devices_by_app_id(registered_devices, self.app_id)
 
     def create_signing_challenge(
         self,
         session: typ.MutableMapping[str, typ.Any],
-        registered_devices: typ.Collection[DeviceRegistration],
+        registered_devices: typ.Iterable[DeviceRegistration],
     ) -> typ.Mapping[str, typ.Any]:
         registered_devices = self.filter_devices_by_app_id(registered_devices)
         if not registered_devices:
@@ -72,7 +74,7 @@ class U2FSigningManager(abc.ABC):
         self,
         session: typ.MutableMapping[str, typ.Any],
         response_dict: typ.Mapping[str, str],
-        registered_devices: typ.Collection[DeviceRegistration] = (),
+        registered_devices: typ.Iterable[DeviceRegistration] = (),
     ) -> DeviceRegistration:
         registered_devices = self.filter_devices_by_app_id(registered_devices)
         key_handle = websafe_decode(response_dict.get("keyHandle", ""))
@@ -86,7 +88,7 @@ class U2FSigningManager(abc.ABC):
         return self.update_device_registration_counter(device=device, counter=counter)
 
     def get_key_by_handle(
-        self, registered_keys: typ.Collection[DeviceRegistration], key_handle: str
+        self, registered_keys: typ.Iterable[DeviceRegistration], key_handle: bytes
     ) -> DeviceRegistration:
         for key in registered_keys:
             if key.key_handle == key_handle:

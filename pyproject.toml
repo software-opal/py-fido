@@ -1,0 +1,54 @@
+[tool.poetry]
+name = "py_fido"
+version = "0.5.0"
+description = "A framework-agnostic implementation of the FIDO U2F server workflow"
+authors = ["Opal Symes <code@opal.codes>"]
+license = "LGPL-3.0+"
+repository="https://github.com/leesdolphin/py-fido/"
+readme="README.md"
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
+  "Topic :: Security",
+]
+exclude = ["docs/"]
+include=["fido_u2f/sample/*.js"]
+packages=[ { include = "fido_u2f" } ]
+
+[tool.poetry.dependencies]
+python = "^3.5.2"
+cryptography = "2.3.*"
+
+flask = { version="1.*", optional=true }
+Flask-SQLAlchemy = { version="2.*", optional=true }
+
+[tool.poetry.dev-dependencies]
+flake8 = "^3.7"
+flake8-bugbear = "^18.8"
+flake8-mypy = "^17.8"
+flake8-quotes = "^1.0"
+flake8-tuple = "^0.2.13"
+isort = { version = "^4.3", extras = [ "pyproject" ] }
+mypy = "^0.670.0"
+pep8-naming = "^0.8.2"
+pytest = "^4.3"
+sphinx = "^1.8"
+sphinx-autodoc-typehints = "^1.6"
+sphinx-rtd-theme = "^0.4.3"
+pytest-cov = "^2.6"
+
+[tool.poetry.extras]
+sample = ["flask", "Flask-SQLAlchemy"]
+
+[tool.isort]
+multi_line_output=3
+include_trailing_comma=true
+force_grid_wrap=0
+use_parentheses=true
+line_length=88
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

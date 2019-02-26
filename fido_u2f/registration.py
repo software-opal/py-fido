@@ -21,6 +21,8 @@ from .utils import (
     websafe_encode,
 )
 
+from . import _typing as typ  # isort:skip
+
 
 class U2FRegistrationManager(abc.ABC):
 
@@ -42,14 +44,14 @@ class U2FRegistrationManager(abc.ABC):
         ...
 
     def filter_devices_by_app_id(
-        self, registered_devices: typ.Collection[DeviceRegistration]
-    ) -> typ.Iterable[DeviceRegistration]:
+        self, registered_devices: typ.Iterable[DeviceRegistration]
+    ) -> typ.Iterator[DeviceRegistration]:
         return filter_devices_by_app_id(registered_devices, self.app_id)
 
     def create_registration_challenge(
         self,
         session: typ.MutableMapping[str, typ.Any],
-        registered_devices: typ.Collection[DeviceRegistration] = (),
+        registered_devices: typ.Iterable[DeviceRegistration] = (),
     ) -> typ.Mapping[str, typ.Any]:
         """
         Generate a challenge and return information for the registration step.
@@ -151,7 +153,7 @@ class RegistrationData:
         except InvalidSignature as e:
             raise U2FInvalidDataException("Attestation signature is invalid") from e
 
-    def get_supported_transports(self,) -> U2FTransports:
+    def get_supported_transports(self) -> U2FTransports:
         """Extract the transports this token supports from the certificate."""
         cert = self.get_x509_certificate()
         try:
