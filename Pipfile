@@ -9,23 +9,21 @@ mypy = "mypy ."
 docs = "sphinx-build -M html docs/source docs/build"
 
 [packages]
-e1839a8 = {path = ".",editable = true}
-pyopenssl = "*"
+py-fido = {path = ".",editable = true}
 
 [dev-packages]
-"flake8" = "~=3.5"
-"flake8-commas" = "*"
-"flake8-import-order" = "*"
-"flake8-mypy" = "*"
-"flake8-quotes" = "*"
-"flake8-tuple" = "*"
-"mypy" = "*"
-"pep8-naming" = "*"
+flake8 = "~=3.5"
+flake8-bugbear = "*"
+flake8-mypy = "*"
+flake8-quotes = "*"
+flake8-tuple = "*"
+isort = "*"
+mypy = "*"
+pep8-naming = "*"
 pytest = "*"
 sphinx = "*"
-sphinx-rtd-theme = "*"
 sphinx-autodoc-typehints = "*"
-isort = "*"
+sphinx-rtd-theme = "*"
 
 [requires]
 python_version = "3.5"

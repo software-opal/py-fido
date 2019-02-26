@@ -14,3 +14,4 @@ output
 docs/build
 Pipfile.old.lock
 .pytest_cache
+.mypy_cache
